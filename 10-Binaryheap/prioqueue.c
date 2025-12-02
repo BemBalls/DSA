@@ -1,87 +1,120 @@
-// Priority Queue implementation in C
-
 #include <stdio.h>
-int size = 0;
-void swap(int *a, int *b) {
-  int temp = *b;
-  *b = *a;
-  *a = temp;
+
+#define MAX_PROCESSES 100
+
+typedef struct {
+    int priority;   // Higher number = higher priority
+} Process;
+
+typedef struct {
+    Process heap[MAX_PROCESSES];
+    int size;      // current number of elements
+    int capacity;  // maximum capacity
+} PriorityQueue;
+
+/* ----- Utility: swap two processes ----- */
+void swap(Process *a, Process *b) {
+    Process temp = *a;
+    *a = *b;
+    *b = temp;
 }
 
-// Function to heapify the tree
-void heapify(int array[], int size, int i) {
-  if (size == 1) {
-    printf("Single element in the heap");
-  } else {
-    // Find the largest among root, left child and right child
+/* ----- Heapify (down-heapify) starting at index i ----- */
+void heapify(PriorityQueue *pq, int i) {
     int largest = i;
-    int l = 2 * i + 1;
-    int r = 2 * i + 2;
-    if (l < size && array[l] > array[largest])
-      largest = l;
-    if (r < size && array[r] > array[largest])
-      largest = r;
+    int left  = 2 * i + 1;
+    int right = 2 * i + 2;
 
-    // Swap and continue heapifying if root is not largest
+    if (left < pq->size && pq->heap[left].priority > pq->heap[largest].priority) {
+        largest = left;
+    }
+
+    if (right < pq->size && pq->heap[right].priority > pq->heap[largest].priority) {
+        largest = right;
+    }
+
     if (largest != i) {
-      swap(&array[i], &array[largest]);
-      heapify(array, size, largest);
+        swap(&pq->heap[i], &pq->heap[largest]);
+        heapify(pq, largest);
     }
-  }
 }
 
-// Function to insert an element into the tree
-void insert(int array[], int newNum) {
-  if (size == 0) {
-    array[0] = newNum;
-    size += 1;
-  } else {
-    array[size] = newNum;
-    size += 1;
-    for (int i = size / 2 - 1; i >= 0; i--) {
-      heapify(array, size, i);
+/* ----- Enqueue: insert new process with given priority ----- */
+void enqueue(PriorityQueue *pq, int priority) {
+    if (pq->size == pq->capacity) {
+        printf("Priority queue is full!\n");
+        return;
     }
-  }
+
+    // 1) Insert at last available index
+    int i = pq->size;
+    pq->heap[i].priority = priority;
+    pq->size++;
+
+    // 2) Up-heapify (bubble up)
+    while (i != 0) {
+        int parent = (i - 1) / 2;
+        if (pq->heap[i].priority > pq->heap[parent].priority) {
+            swap(&pq->heap[i], &pq->heap[parent]);
+            i = parent;
+        } else {
+            break;
+        }
+    }
 }
 
-// Function to delete an element from the tree
-void deleteRoot(int array[], int num) {
-  int i;
-  for (i = 0; i < size; i++) {
-    if (num == array[i])
-      break;
-  }
+/* ----- Dequeue: remove and return max-priority process ----- */
+Process dequeue(PriorityQueue *pq) {
+    Process dummy = { -1 };   // for error cases
 
-  swap(&array[i], &array[size - 1]);
-  size -= 1;
-  for (int i = size / 2 - 1; i >= 0; i--) {
-    heapify(array, size, i);
-  }
+    if (pq->size == 0) {
+        printf("Priority queue is empty!\n");
+        return dummy;
+    }
+
+    // Root is max
+    Process root = pq->heap[0];
+
+    // 1) Move last element to root, shrink size
+    pq->heap[0] = pq->heap[pq->size - 1];
+    pq->size--;
+
+    // 2) Heapify from root down
+    heapify(pq, 0);
+
+    return root;
 }
 
-// Print the array
-void printArray(int array[], int size) {
-  for (int i = 0; i < size; ++i)
-    printf("%d ", array[i]);
-  printf("\n");
+/* ----- Helper: print current heap array ----- */
+void printPQ(PriorityQueue *pq) {
+    printf("Heap array (priority only): ");
+    for (int i = 0; i < pq->size; i++) {
+        printf("%d ", pq->heap[i].priority);
+    }
+    printf("\n");
 }
 
-// Driver code
-int main() {
-  int array[10];
+int main(void) {
+    PriorityQueue pq;
+    pq.size = 0;
+    pq.capacity = MAX_PROCESSES;
 
-  insert(array, 3);
-  insert(array, 4);
-  insert(array, 9);
-  insert(array, 5);
-  insert(array, 2);
+    // Example usage
+    enqueue(&pq, 5);
+    enqueue(&pq, 3);
+    enqueue(&pq, 10);
+    enqueue(&pq, 1);
+    enqueue(&pq, 8);
 
-  printf("Max-Heap array: ");
-  printArray(array, size);
+    printPQ(&pq);
 
-  deleteRoot(array, 4);
+    Process p = dequeue(&pq);
+    printf("Dequeued max priority: %d\n", p.priority);
+    printPQ(&pq);
 
-  printf("After deleting an element: ");
+    p = dequeue(&pq);
+    printf("Dequeued max priority: %d\n", p.priority);
+    printPQ(&pq);
 
-  printArray(array, size);
+    return 0;
 }
