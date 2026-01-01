@@ -1,18 +1,21 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-#define MAX 100
+#define LENGTH 10
 
 typedef struct {
-    int elem[MAX];
+    int *elemPtr;
     int count;
+    int max;
 } List;
 
-List initialize(List L);
-List insertPos(List L, int data, int position);
-List deletePos(List L, int position);
-int  locate(List L, int data);
-List insertSorted(List L, int data);
-void display(List L);
+List  initialize(List L);
+List  insertPos(List L, int data, int position);
+List  deletePos(List L, int position);
+int   locate(List L, int data);
+List  insertSorted(List L, int data);
+void  display(List L);
+List  resize(List L);
 
 int main(void) {
     List L;
@@ -62,16 +65,33 @@ int main(void) {
             display(L);
             break;
         case 6:
+            free(L.elemPtr);
             return 0;
         default:
             printf("Invalid choice.\n");
         }
     }
+
+    free(L.elemPtr);
     return 0;
 }
 
 List initialize(List L) {
+    L.elemPtr = (int *)malloc(LENGTH * sizeof(int));
     L.count = 0;
+    L.max = LENGTH;
+    return L;
+}
+
+List resize(List L) {
+    int newMax = L.max * 2;
+    int *newPtr = (int *)realloc(L.elemPtr, newMax * sizeof(int));
+    if (newPtr == NULL) {
+        printf("Resize failed.\n");
+        return L;
+    }
+    L.elemPtr = newPtr;
+    L.max = newMax;
     return L;
 }
 
@@ -82,16 +102,15 @@ List insertPos(List L, int data, int position) {
         printf("Invalid position.\n");
         return L;
     }
-    if (L.count == MAX) {
-        printf("List is full.\n");
-        return L;
+    if (L.count == L.max) {
+        L = resize(L);
     }
 
     for (i = L.count; i >= position; i--) {
-        L.elem[i] = L.elem[i - 1];
+        L.elemPtr[i] = L.elemPtr[i - 1];
     }
 
-    L.elem[position - 1] = data;
+    L.elemPtr[position - 1] = data;
     L.count++;
     return L;
 }
@@ -109,7 +128,7 @@ List deletePos(List L, int position) {
     }
 
     for (i = position - 1; i < L.count - 1; i++) {
-        L.elem[i] = L.elem[i + 1];
+        L.elemPtr[i] = L.elemPtr[i + 1];
     }
 
     L.count--;
@@ -119,7 +138,7 @@ List deletePos(List L, int position) {
 int locate(List L, int data) {
     int i;
     for (i = 0; i < L.count; i++) {
-        if (L.elem[i] == data)
+        if (L.elemPtr[i] == data)
             return i;
     }
     return -1;
@@ -128,21 +147,20 @@ int locate(List L, int data) {
 List insertSorted(List L, int data) {
     int i, pos;
 
-    if (L.count == MAX) {
-        printf("List is full.\n");
-        return L;
+    if (L.count == L.max) {
+        L = resize(L);
     }
 
     pos = 0;
-    while (pos < L.count && L.elem[pos] <= data) {
+    while (pos < L.count && L.elemPtr[pos] <= data) {
         pos++;
     }
 
     for (i = L.count; i > pos; i--) {
-        L.elem[i] = L.elem[i - 1];
+        L.elemPtr[i] = L.elemPtr[i - 1];
     }
 
-    L.elem[pos] = data;
+    L.elemPtr[pos] = data;
     L.count++;
     return L;
 }
@@ -157,7 +175,7 @@ void display(List L) {
 
     printf("List elements: ");
     for (i = 0; i < L.count; i++) {
-        printf("%d ", L.elem[i]);
+        printf("%d ", L.elemPtr[i]);
     }
     printf("\n");
 }

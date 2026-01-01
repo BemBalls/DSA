@@ -12,6 +12,10 @@ typedef struct {
     int capacity;  // maximum capacity
 } PriorityQueue;
 
+void initPriorityQueue(PriorityQueue *pq) {
+    pq->size = 0;
+    pq->capacity = MAX_PROCESSES;
+}
 /* ----- Utility: swap two processes ----- */
 void swap(Process *a, Process *b) {
     Process temp = *a;
@@ -94,10 +98,9 @@ void printPQ(PriorityQueue *pq) {
     printf("\n");
 }
 
-int main(void) {
+int main(void) { 
     PriorityQueue pq;
-    pq.size = 0;
-    pq.capacity = MAX_PROCESSES;
+    initPriorityQueue(&pq);
 
     // Example usage
     enqueue(&pq, 5);

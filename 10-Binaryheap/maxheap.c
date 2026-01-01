@@ -48,10 +48,10 @@ void deleteRoot(int array[], int num) {
     }
 
     swap(&array[i], &array[size - 1]);
-    // Reduce the size of the heap since the last element is now removed
+    
     size -= 1;
 
-    // Heapify from the current index to adjust the rest of the heap
+    
     if (i < size) {
         heapify(array, size, i);
     }

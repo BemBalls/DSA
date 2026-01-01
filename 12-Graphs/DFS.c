@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #define MAX 10
 #define unvisited 100
-#define visited -1
+#define visited 1
 
 typedef struct node{
     int elem;
